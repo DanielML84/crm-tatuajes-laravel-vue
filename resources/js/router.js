@@ -1,32 +1,53 @@
 import Vue from 'vue';
 import VueRouter from 'vue-router';
 
-// Le decimos a Vue que use Vue Router
 Vue.use(VueRouter);
 
-// Importamos los componentes que actuarán como nuestras "páginas"
-// (Los crearemos en el siguiente paso)
 import Home from './pages/Home.vue';
 import Dashboard from './pages/Dashboard.vue';
+import Login from './pages/Login.vue'; // <-- 1. Importamos la nueva página de Login
 
-// Definimos las rutas
 const routes = [
     {
-        path: '/', // La URL raíz
+        path: '/',
         name: 'home',
-        component: Home // Le decimos que muestre el componente Home
+        component: Home
     },
     {
-        path: '/dashboard', // La URL para nuestro CRM
+        path: '/login', // <-- 2. Añadimos la nueva ruta para el login
+        name: 'login',
+        component: Login
+    },
+    {
+        path: '/dashboard',
         name: 'dashboard',
-        component: Dashboard // Le decimos que muestre el componente Dashboard
+        component: Dashboard,
+        meta: { requiresAuth: true } // <-- 3. Marcamos esta ruta como protegida
     }
 ];
 
-// Creamos la instancia del router
 const router = new VueRouter({
-    mode: 'history', // Usa el modo historial del navegador para URLs limpias
-    routes // le pasamos el array de rutas que definimos arriba
+    mode: 'history',
+    routes
+});
+
+// 4. AÑADIMOS UN "GUARDIA DE NAVEGACIÓN"
+// Este código se ejecuta ANTES de cada cambio de ruta.
+router.beforeEach((to, from, next) => {
+    // Comprueba si la ruta a la que vamos (to) requiere autenticación
+    if (to.matched.some(record => record.meta.requiresAuth)) {
+        // Si requiere autenticación, comprobamos si tenemos un token en el localStorage
+        if (!localStorage.getItem('authToken')) {
+            // Si NO hay token, redirigimos al login
+            next({ name: 'login' });
+        } else {
+            // Si SÍ hay token, permitimos el paso
+            next();
+        }
+    } else {
+        // Si la ruta no requiere autenticación, permitimos el paso
+        next();
+    }
 });
 
 export default router;

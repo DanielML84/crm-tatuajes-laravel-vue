@@ -2,7 +2,7 @@
     <div class="flex flex-col md:flex-row items-center justify-center gap-8 md:gap-16">
         
         <div class="w-full md:w-1/2">
-            <img src="/images/hero-image.png" alt="Estudio de Tatuajes" class="rounded-lg shadow-2xl shadow-cyan-500/20">
+            <img src="/images/logo-inkflow.png" alt="Estudio de Tatuajes" class="rounded-lg shadow-2xl shadow-cyan-500/20">
         </div>
 
         <div class="w-full md:w-1/2 text-center md:text-left">

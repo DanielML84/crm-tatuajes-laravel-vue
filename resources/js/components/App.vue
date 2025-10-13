@@ -1,52 +1,36 @@
 <template>
-    <div id="main-container">
-        <header>
-            <h1>Gestión del Estudio de Tatuajes</h1>
-        </header>
-        <main>
-            <Citas />
-            <hr>
-            <Clientes />
-            <hr>
-            <Artistas />
-        </main>
+    <div class="bg-gray-900 min-h-screen text-gray-200 font-sans">
+        <div class="container mx-auto p-4 md:p-8">
+            <header class="flex justify-between items-center mb-12">
+                <h1 class="text-2xl font-bold text-cyan-400">
+                    Estudio de Tatuajes CRM
+                </h1>
+                <nav class="space-x-6">
+                    <router-link to="/" class="nav-link">Inicio</router-link>
+                    <router-link to="/dashboard" class="nav-link">Dashboard</router-link>
+                </nav>
+            </header>
+
+            <main>
+                <router-view></router-view>
+            </main>
+        </div>
     </div>
 </template>
 
 <script>
-// Importamos los tres componentes
-import Clientes from './Clientes.vue';
-import Artistas from './Artistas.vue';
-import Citas from './Citas.vue';
-
 export default {
-    name: 'App',
-    // Los registramos para poder usarlos en el template
-    components: {
-        Clientes,
-        Artistas,
-        Citas
-    }
+    name: 'App'
 }
 </script>
 
 <style>
-/* Estilos globales para la aplicación */
-body {
-    background-color: #f4f4f4;
+/* Estilos para los enlaces de navegación */
+.nav-link {
+    @apply text-gray-300 hover:text-cyan-400 transition duration-300;
 }
-#main-container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-}
-header h1 {
-    color: #333;
-    font-family: sans-serif;
-}
-hr {
-    width: 80%;
-    margin: 40px 0;
-    border: 1px solid #ddd;
+/* Estilo para el enlace activo */
+.router-link-exact-active {
+    @apply text-cyan-400 font-bold;
 }
 </style>

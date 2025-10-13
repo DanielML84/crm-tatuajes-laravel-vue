@@ -1,11 +1,30 @@
-@import 'tailwindcss';
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
-@source '../../storage/framework/views/*.php';
-@source '../**/*.blade.php';
-@source '../**/*.js';
-
-@theme {
-    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
-        'Segoe UI Symbol', 'Noto Color Emoji';
+@layer components {
+    .form-input {
+        @apply w-full bg-gray-700 border border-gray-600 rounded-md py-2 px-3 text-gray-200 focus:outline-none focus:ring-2 focus:ring-cyan-500 transition;
+    }
+    .form-label {
+        @apply block mb-1 text-sm font-medium text-gray-400;
+    }
+    .btn {
+        @apply font-bold py-2 px-4 rounded-md transition duration-300;
+    }
+    .btn-primary {
+        @apply bg-cyan-600 hover:bg-cyan-700 text-white;
+    }
+    .btn-secondary {
+        @apply bg-gray-600 hover:bg-gray-700 text-white;
+    }
+    .btn-icon {
+        @apply text-sm py-1 px-3 rounded-md;
+    }
+    .btn-edit {
+        @apply bg-amber-500 hover:bg-amber-600 text-white;
+    }
+    .btn-delete {
+        @apply bg-red-600 hover:bg-red-700 text-white;
+    }
 }

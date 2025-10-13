@@ -1,23 +1,33 @@
 <template>
-    <div class="container">
-        <form @submit.prevent="guardarArtista" class="form-container">
-            <h3>{{ editMode ? 'Editando Artista' : 'Añadir Nuevo Artista' }}</h3>
-            <input v-model="formData.nombre" placeholder="Nombre" required>
-            <input v-model="formData.apellidos" placeholder="Apellidos" required>
-            <input v-model="formData.email" type="email" placeholder="Email" required>
-            <input v-model="formData.telefono" placeholder="Teléfono" required>
-            <button type="submit">{{ editMode ? 'Guardar Cambios' : 'Guardar Artista' }}</button>
-            <button v-if="editMode" @click.prevent="cancelarEdicion" class="cancel-button">Cancelar</button>
+    <div class="bg-gray-800 p-6 rounded-lg shadow-lg">
+        <form @submit.prevent="guardarArtista" class="mb-8">
+            <h3 class="text-2xl font-bold text-gray-100 mb-6 border-b border-gray-700 pb-2">
+                {{ editMode ? 'Editando Artista' : 'Añadir Nuevo Artista' }}
+            </h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <input v-model="formData.nombre" placeholder="Nombre" required class="form-input">
+                <input v-model="formData.apellidos" placeholder="Apellidos" required class="form-input">
+                <input v-model="formData.email" type="email" placeholder="Email" required class="form-input">
+                <input v-model="formData.telefono" placeholder="Teléfono" required class="form-input">
+            </div>
+            <div class="flex items-center mt-6 space-x-4">
+                <button type="submit" class="btn btn-primary">
+                    {{ editMode ? 'Guardar Cambios' : 'Guardar Artista' }}
+                </button>
+                <button v-if="editMode" @click.prevent="cancelarEdicion" class="btn btn-secondary">
+                    Cancelar
+                </button>
+            </div>
         </form>
 
-        <div class="list-container">
-            <h3>Lista de Artistas</h3>
-            <ul>
-                <li v-for="artista in artistas" :key="artista.id">
-                    <span>{{ artista.nombre }} {{ artista.apellidos }} ({{ artista.email }})</span>
-                    <div class="buttons-container">
-                        <button @click="editarArtista(artista)" class="edit-button">Editar</button>
-                        <button @click="eliminarArtista(artista.id)" class="delete-button">Eliminar</button>
+        <div>
+            <h3 class="text-2xl font-bold text-gray-100 mb-4">Lista de Artistas</h3>
+            <ul class="divide-y divide-gray-700">
+                <li v-for="artista in artistas" :key="artista.id" class="flex justify-between items-center py-3">
+                    <span class="text-gray-300">{{ artista.nombre }} {{ artista.apellidos }} ({{ artista.email }})</span>
+                    <div class="space-x-2">
+                        <button @click="editarArtista(artista)" class="btn-icon btn-edit">Editar</button>
+                        <button @click="eliminarArtista(artista.id)" class="btn-icon btn-delete">Eliminar</button>
                     </div>
                 </li>
             </ul>
@@ -26,6 +36,7 @@
 </template>
 
 <script>
+// El script de Artistas, puedes dejar el que ya tenías.
 import axios from 'axios';
 
 export default {
@@ -68,19 +79,3 @@ export default {
     }
 }
 </script>
-
-<style scoped>
-/* Puedes copiar los mismos estilos del componente de Clientes si quieres */
-.container { font-family: sans-serif; padding: 20px; max-width: 800px; margin: auto; }
-.form-container, .list-container { border: 1px solid #ccc; padding: 15px; margin-top: 20px; border-radius: 8px; }
-input { display: block; margin-bottom: 10px; padding: 8px; width: 95%; }
-button { padding: 10px 15px; background-color: darkcyan; color: white; border: none; border-radius: 5px; cursor: pointer; margin-right: 5px; }
-button:hover { background-color: #00796b; }
-li { display: flex; justify-content: space-between; align-items: center; padding: 8px; border-bottom: 1px solid #eee; }
-.cancel-button { background-color: #777; }
-.cancel-button:hover { background-color: #555; }
-.edit-button { background-color: #f0ad4e; font-size: 0.8em; padding: 5px 10px;}
-.edit-button:hover { background-color: #ec971f; }
-.delete-button { background-color: #d9534f; font-size: 0.8em; padding: 5px 10px;}
-.delete-button:hover { background-color: #c9302c; }
-</style>

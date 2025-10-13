@@ -11,6 +11,7 @@
                             {{ cliente.nombre }} {{ cliente.apellidos }}
                         </option>
                     </select>
+                    <p v-if="errors.cliente_id" class="text-red-500 text-sm mt-1">{{ errors.cliente_id[0] }}</p>
                 </div>
                 <div>
                     <label class="form-label">Artista:</label>
@@ -20,10 +21,12 @@
                             {{ artista.nombre }} {{ artista.apellidos }}
                         </option>
                     </select>
+                    <p v-if="errors.artista_id" class="text-red-500 text-sm mt-1">{{ errors.artista_id[0] }}</p>
                 </div>
                 <div class="md:col-span-2">
                     <label class="form-label">Fecha y Hora:</label>
                     <input v-model="formData.fecha_hora" type="datetime-local" required class="form-input">
+                    <p v-if="errors.fecha_hora" class="text-red-500 text-sm mt-1">{{ errors.fecha_hora[0] }}</p>
                 </div>
                 <div class="md:col-span-2">
                     <label class="form-label">Descripción:</label>
@@ -36,7 +39,7 @@
         </form>
 
         <div>
-             <h3 class="text-2xl font-bold text-gray-100 mb-4">Próximas Citas</h3>
+            <h3 class="text-2xl font-bold text-gray-100 mb-4">Próximas Citas</h3>
             <ul class="divide-y divide-gray-700">
                 <li v-for="cita in citas" :key="cita.id" class="flex justify-between items-center py-3">
                     <div class="text-gray-300">
@@ -51,7 +54,6 @@
 </template>
 
 <script>
-// El script de Citas, puedes dejar el que ya tenías.
 import axios from 'axios';
 
 export default {
@@ -66,7 +68,9 @@ export default {
                 artista_id: '',
                 fecha_hora: '',
                 descripcion: ''
-            }
+            },
+            // Objeto para los errores
+            errors: {}
         };
     },
     mounted() {
@@ -85,12 +89,19 @@ export default {
             axios.get('/api/v1/artistas').then(response => { this.artistas = response.data; });
         },
         guardarCita() {
-            axios.post('/api/v1/citas', this.formData).then(() => {
-                this.getCitas();
-                this.formData = { cliente_id: '', artista_id: '', fecha_hora: '', descripcion: '' };
-            }).catch(error => {
-                console.error("Error al agendar la cita:", error);
-            });
+            this.errors = {}; // Limpiamos errores
+            axios.post('/api/v1/citas', this.formData)
+                .then(() => {
+                    this.getCitas();
+                    this.formData = { cliente_id: '', artista_id: '', fecha_hora: '', descripcion: '' };
+                })
+                .catch(error => { // Capturamos el error
+                    if (error.response && error.response.status === 422) {
+                        this.errors = error.response.data.errors;
+                    } else {
+                        console.error("Error al agendar la cita:", error);
+                    }
+                });
         },
         eliminarCita(id) {
             if (confirm('¿Estás seguro?')) {

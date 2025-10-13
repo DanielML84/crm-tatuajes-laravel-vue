@@ -1,27 +1,49 @@
 <template>
-    <div class="bg-gray-900 min-h-screen text-gray-200 font-sans">
-        <div id="main-container" class="container mx-auto p-4 md:p-8">
-            <header class="text-center mb-12">
-                <h1 class="text-4xl md:text-5xl font-bold tracking-tight text-cyan-400">
-                    Estudio de Tatuajes CRM
-                </h1>
-            </header>
-            <main class="space-y-12">
+    <div class="bg-gray-800 p-4 sm:p-6 rounded-lg shadow-lg">
+        <div class="flex border-b border-gray-700 mb-6">
+            <button @click="activeTab = 'citas'" :class="{ 'active': activeTab === 'citas' }" class="tab-button">
+                Citas
+            </button>
+            <button @click="activeTab = 'clientes'" :class="{ 'active': activeTab === 'clientes' }" class="tab-button">
+                Clientes
+            </button>
+            <button @click="activeTab = 'artistas'" :class="{ 'active': activeTab === 'artistas' }" class="tab-button">
+                Artistas
+            </button>
+        </div>
+
+        <div>
+            <div v-show="activeTab === 'citas'">
                 <Citas />
+            </div>
+            <div v-show="activeTab === 'clientes'">
                 <Clientes />
+            </div>
+            <div v-show="activeTab === 'artistas'">
                 <Artistas />
-            </main>
+            </div>
         </div>
     </div>
 </template>
 
 <script>
-import Clientes from './Clientes.vue';
-import Artistas from './Artistas.vue';
-import Citas from './Citas.vue';
+import Clientes from '../components/Clientes.vue';
+import Artistas from '../components/Artistas.vue';
+import Citas from '../components/Citas.vue';
 
 export default {
-    name: 'App',
-    components: { Clientes, Artistas, Citas }
+    name: 'Dashboard',
+    components: {
+        Clientes,
+        Artistas,
+        Citas
+    },
+    data() {
+        return {
+            // 3. Variable que controla qué pestaña está activa.
+            //    Por defecto, mostramos 'citas' al cargar.
+            activeTab: 'citas'
+        }
+    }
 }
 </script>

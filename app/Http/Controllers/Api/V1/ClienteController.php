@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\V1;
 use App\Http\Controllers\Controller;
 use App\Models\Cliente;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule; // <-- Importante: Añade esta línea al principio
 
 class ClienteController extends Controller
 {
@@ -15,7 +16,17 @@ class ClienteController extends Controller
 
     public function store(Request $request)
     {
-        $cliente = Cliente::create($request->all());
+        // 1. Definimos las reglas de validación para crear un cliente
+        $validatedData = $request->validate([
+            'nombre'    => 'required|string|max:255',
+            'apellidos' => 'required|string|max:255',
+            'email'     => 'required|email|unique:clientes,email', // Requerido, formato email y único en la tabla 'clientes'
+            'telefono'  => 'required|string|max:20',
+        ]);
+
+        // 2. Si la validación pasa, creamos el cliente solo con los datos validados
+        $cliente = Cliente::create($validatedData);
+
         return response()->json($cliente, 201);
     }
 
@@ -26,7 +37,24 @@ class ClienteController extends Controller
 
     public function update(Request $request, Cliente $cliente)
     {
-        $cliente->update($request->all());
+        // 1. Las reglas de validación para actualizar son similares
+        $validatedData = $request->validate([
+            'nombre'    => 'required|string|max:255',
+            'apellidos' => 'required|string|max:255',
+            'email'     => [
+                'required',
+                'email',
+                // 2. La regla 'unique' aquí es especial. Le decimos que el email
+                // debe ser único, PERO ignorando el del propio cliente que estamos editando.
+                // Si no hiciéramos esto, nos daría error al guardar sin cambiar el email.
+                Rule::unique('clientes')->ignore($cliente->id),
+            ],
+            'telefono'  => 'required|string|max:20',
+        ]);
+
+        // 3. Actualizamos el cliente con los datos validados
+        $cliente->update($validatedData);
+
         return response()->json($cliente, 200);
     }
 

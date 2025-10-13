@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\V1;
 use App\Http\Controllers\Controller;
 use App\Models\Artista;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule; // <-- Añade esta línea
 
 class ArtistaController extends Controller
 {
@@ -15,7 +16,15 @@ class ArtistaController extends Controller
 
     public function store(Request $request)
     {
-        $artista = Artista::create($request->all());
+        // Añadimos las reglas de validación para crear
+        $validatedData = $request->validate([
+            'nombre'    => 'required|string|max:255',
+            'apellidos' => 'required|string|max:255',
+            'email'     => 'required|email|unique:artistas,email',
+            'telefono'  => 'required|string|max:20',
+        ]);
+
+        $artista = Artista::create($validatedData);
         return response()->json($artista, 201);
     }
 
@@ -26,7 +35,19 @@ class ArtistaController extends Controller
 
     public function update(Request $request, Artista $artista)
     {
-        $artista->update($request->all());
+        // Añadimos las reglas de validación para actualizar
+        $validatedData = $request->validate([
+            'nombre'    => 'required|string|max:255',
+            'apellidos' => 'required|string|max:255',
+            'email'     => [
+                'required',
+                'email',
+                Rule::unique('artistas')->ignore($artista->id), // Ignora el email del propio artista
+            ],
+            'telefono'  => 'required|string|max:20',
+        ]);
+
+        $artista->update($validatedData);
         return response()->json($artista, 200);
     }
 

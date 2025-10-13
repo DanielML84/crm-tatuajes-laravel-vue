@@ -10,22 +10,32 @@ class CitaController extends Controller
 {
     public function index()
     {
-        // Usamos with() para cargar las relaciones y evitar el problema N+1
         return Cita::with(['cliente', 'artista'])->get();
     }
 
     public function store(Request $request)
     {
-        $cita = Cita::create($request->all());
+        // Añadimos las reglas de validación para crear una cita
+        $validatedData = $request->validate([
+            // Requerido y debe existir en la tabla 'clientes' en la columna 'id'
+            'cliente_id'  => 'required|exists:clientes,id', 
+            // Requerido y debe existir en la tabla 'artistas' en la columna 'id'
+            'artista_id'  => 'required|exists:artistas,id',
+            'fecha_hora'  => 'required|date',
+            'descripcion' => 'nullable|string', // La descripción puede estar vacía
+        ]);
+
+        $cita = Cita::create($validatedData);
         return response()->json($cita, 201);
     }
 
     public function show(Cita $cita)
     {
-        // Cargamos las relaciones para una única cita
         return $cita->load(['cliente', 'artista']);
     }
 
+    // Nota: Aún no hemos implementado la edición de citas, por lo que
+    // no añadimos validación en el método update() por ahora.
     public function update(Request $request, Cita $cita)
     {
         $cita->update($request->all());

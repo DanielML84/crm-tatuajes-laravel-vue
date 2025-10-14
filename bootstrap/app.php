@@ -14,6 +14,13 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         //
     })
-    ->withExceptions(function (Exceptions $exceptions): void {
-        //
-    })->create();
+    ->withExceptions(function (Exceptions $exceptions) {
+    // 1. Importa la clase de la excepción de autenticación al principio de la función
+    $exceptions->renderable(function (\Illuminate\Auth\AuthenticationException $e, $request) {
+        // 2. Si la petición es una API que espera JSON
+        if ($request->expectsJson()) {
+            // 3. Devuelve una respuesta JSON con error 401
+            return response()->json(['message' => 'No autenticado.'], 401);
+        }
+    });
+})->create();

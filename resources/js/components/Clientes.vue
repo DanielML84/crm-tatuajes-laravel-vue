@@ -1,5 +1,6 @@
 <template>
     <div class="bg-gray-800 p-6 rounded-lg shadow-lg">
+        
         <form @submit.prevent="guardarCliente" class="mb-8">
             <h3 class="text-2xl font-bold text-gray-100 mb-6 border-b border-gray-700 pb-2">
                 {{ editMode ? 'Editando Cliente' : 'Añadir Nuevo Cliente' }}
@@ -34,82 +35,91 @@
 
         <div>
             <h3 class="text-2xl font-bold text-gray-100 mb-4">Lista de Clientes</h3>
-            <ul class="divide-y divide-gray-700">
-                <li v-for="cliente in clientes" :key="cliente.id" class="flex justify-between items-center py-3">
-                    <span class="text-gray-300">{{ cliente.nombre }} {{ cliente.apellidos }} ({{ cliente.email }})</span>
-                    <div class="space-x-2">
-                        <button @click="editarCliente(cliente)" class="btn-icon btn-edit">Editar</button>
-                        <button @click="eliminarCliente(cliente.id)" class="btn-icon btn-delete">Eliminar</button>
-                    </div>
-                </li>
-            </ul>
+            <div class="mb-4">
+                <input 
+                    type="text" 
+                    v-model="searchTerm" 
+                    @keyup.enter="getClientes(1)" 
+                    placeholder="Buscar por nombre o email..." 
+                    class="form-input"
+                >
+            </div>
+            <div v-if="isLoading" class="text-center text-gray-400">Cargando...</div>
+            <div v-else>
+                <ul v-if="pagination.data && pagination.data.length > 0" class="divide-y divide-gray-700">
+                    <li v-for="cliente in pagination.data" :key="cliente.id" class="flex justify-between items-center py-3">
+                        <span class="text-gray-300">{{ cliente.nombre }} {{ cliente.apellidos }} ({{ cliente.email }})</span>
+                        <div class="space-x-2">
+                            <button @click="editarCliente(cliente)" class="btn-icon btn-edit">Editar</button>
+                            <button @click="eliminarCliente(cliente.id)" class="btn-icon btn-delete">Eliminar</button>
+                        </div>
+                    </li>
+                </ul>
+                <p v-else class="text-gray-400">No se encontraron clientes.</p>
+                <div v-if="pagination.total > pagination.per_page" class="flex justify-between items-center mt-4">
+                    <button @click="getClientes(pagination.current_page - 1)" :disabled="!pagination.prev_page_url" class="btn btn-secondary disabled:opacity-50">Anterior</button>
+                    <span class="text-gray-400">Página {{ pagination.current_page }} de {{ pagination.last_page }}</span>
+                    <button @click="getClientes(pagination.current_page + 1)" :disabled="!pagination.next_page_url" class="btn btn-secondary disabled:opacity-50">Siguiente</button>
+                </div>
+            </div>
         </div>
     </div>
 </template>
 
 <script>
 import axios from 'axios';
-import Swal from 'sweetalert2'; // Ya lo teníamos importado
+import Swal from 'sweetalert2';
 
 export default {
     name: 'Clientes',
     data() {
         return {
-            clientes: [],
+            isLoading: false,
+            pagination: {}, 
             formData: { id: null, nombre: '', apellidos: '', email: '', telefono: '' },
             editMode: false,
-            errors: {}
+            errors: {},
+            searchTerm: ''
         };
     },
     mounted() {
         this.getClientes();
     },
     methods: {
-        getClientes() {
-            axios.get('/api/v1/clientes').then(response => { this.clientes = response.data; });
+        getClientes(page = 1) {
+            this.isLoading = true;
+            let url = `/api/v1/clientes?page=${page}&search=${this.searchTerm}`;
+            axios.get(url)
+                .then(response => {
+                    this.pagination = response.data;
+                })
+                .catch(error => {
+                    if (error.response && error.response.status === 401) {
+                        this.$router.push({ name: 'login' });
+                    } else {
+                        console.error("Error al obtener clientes:", error);
+                    }
+                })
+                .finally(() => {
+                    this.isLoading = false;
+                });
         },
         guardarCliente() {
             this.errors = {};
             const url = this.editMode ? `/api/v1/clientes/${this.formData.id}` : '/api/v1/clientes';
             const method = this.editMode ? 'put' : 'post';
-            
             axios[method](url, this.formData)
                 .then(() => {
                     this.getClientes();
                     this.cancelarEdicion();
-                    // REEMPLAZAMOS this.$toast POR Swal.fire()
-                    Swal.fire({
-                        title: '¡Éxito!',
-                        text: 'La operación se completó correctamente.',
-                        icon: 'success',
-                        background: '#374151',
-                        color: '#e5e7eb',
-                        confirmButtonColor: '#3085d6'
-                    });
+                    Swal.fire({ title: '¡Éxito!', text: 'Operación completada.', icon: 'success', background: '#374151', color: '#e5e7eb' });
                 })
                 .catch(error => {
                     if (error.response && error.response.status === 422) {
                         this.errors = error.response.data.errors;
-                        // REEMPLAZAMOS this.$toast POR Swal.fire()
-                        Swal.fire({
-                            title: 'Error de Validación',
-                            text: 'Por favor, corrige los errores del formulario.',
-                            icon: 'error',
-                            background: '#374151',
-                            color: '#e5e7eb',
-                            confirmButtonColor: '#d33'
-                        });
+                        Swal.fire({ title: 'Error de Validación', text: 'Por favor, corrige los errores.', icon: 'error', background: '#374151', color: '#e5e7eb' });
                     } else {
-                        console.error("Hubo un error:", error);
-                        // REEMPLAZAMOS this.$toast POR Swal.fire()
-                        Swal.fire({
-                            title: 'Error Inesperado',
-                            text: 'Ocurrió un error al procesar la solicitud.',
-                            icon: 'error',
-                            background: '#374151',
-                            color: '#e5e7eb',
-                            confirmButtonColor: '#d33'
-                        });
+                        Swal.fire({ title: 'Error Inesperado', text: 'Ocurrió un error.', icon: 'error', background: '#374151', color: '#e5e7eb' });
                     }
                 });
         },
@@ -126,7 +136,7 @@ export default {
         eliminarCliente(id) {
             Swal.fire({
                 title: '¿Estás seguro?',
-                text: "¡No podrás revertir esta acción!",
+                text: "¡No podrás revertir esto!",
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonColor: '#3085d6',
@@ -137,16 +147,12 @@ export default {
                 color: '#e5e7eb'
             }).then((result) => {
                 if (result.isConfirmed) {
-                    axios.delete(`/api/v1/clientes/${id}`)
-                        .then(() => {
-                            this.getClientes();
-                            // Aquí usamos el toast de éxito que ya teníamos de vue-toastification,
-                            // o también podríamos cambiarlo por un Swal.fire() si queremos.
-                            // Por ahora lo dejamos para no perder la librería del todo.
-                            this.$toast.success('Cliente eliminado con éxito.');
-                        });
+                    axios.delete(`/api/v1/clientes/${id}`).then(() => {
+                        this.getClientes();
+                        this.$toast.success('Cliente eliminado con éxito.');
+                    });
                 }
-            })
+            });
         }
     }
 }

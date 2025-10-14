@@ -9,9 +9,23 @@ use Illuminate\Validation\Rule; // <-- Importante: Añade esta línea al princip
 
 class ClienteController extends Controller
 {
-    public function index()
+     public function index(Request $request)
     {
-        return Cliente::all();
+        $query = Cliente::query();
+
+        // Si en la URL nos llega un parámetro "search"
+        if ($request->has('search')) {
+            $searchTerm = $request->search;
+            // Buscamos el término en las columnas 'nombre', 'apellidos' y 'email'
+            $query->where(function($q) use ($searchTerm) {
+                $q->where('nombre', 'like', "%{$searchTerm}%")
+                  ->orWhere('apellidos', 'like', "%{$searchTerm}%")
+                  ->orWhere('email', 'like', "%{$searchTerm}%");
+            });
+        }
+
+        // Devolvemos los resultados paginados (por defecto, 10 por página)
+        return $query->paginate(10);
     }
 
     public function store(Request $request)

@@ -9,9 +9,23 @@ use Illuminate\Validation\Rule; // <-- Añade esta línea
 
 class ArtistaController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        return Artista::all();
+        $query = Artista::query();
+
+        // Si en la URL nos llega un parámetro "search"
+        if ($request->has('search')) {
+            $searchTerm = $request->search;
+            // Buscamos el término en las columnas 'nombre', 'apellidos' y 'email'
+            $query->where(function($q) use ($searchTerm) {
+                $q->where('nombre', 'like', "%{$searchTerm}%")
+                  ->orWhere('apellidos', 'like', "%{$searchTerm}%")
+                  ->orWhere('email', 'like', "%{$searchTerm}%");
+            });
+        }
+
+        // Devolvemos los resultados paginados (10 por página)
+        return $query->paginate(10);
     }
 
     public function store(Request $request)

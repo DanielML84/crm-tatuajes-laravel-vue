@@ -8,21 +8,27 @@ use App\Models\Cita;
 
 class AgendaController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        // 1. Obtenemos todas las citas con la información de su cliente y artista
-        $citas = Cita::with(['cliente', 'artista'])->get();
+        // 1. Empezamos la consulta, pero no la ejecutamos todavía
+        $query = Cita::with(['cliente', 'artista']);
 
-        // 2. Transformamos los datos al formato que necesita FullCalendar
+        // 2. Si la petición incluye un 'artista_id', añadimos un filtro
+        if ($request->has('artista_id')) {
+            $query->where('artista_id', $request->artista_id);
+        }
+
+        // 3. Ahora sí, ejecutamos la consulta (con el filtro si aplica)
+        $citas = $query->get();
+
+        // El resto del código para transformar los datos no cambia
         $eventos = $citas->map(function ($cita) {
             return [
-                'title' => $cita->cliente->nombre . ' - ' . $cita->artista->nombre, // Título del evento
-                'start' => $cita->fecha_hora, // Fecha de inicio
-                // Podríamos añadir una fecha de fin si nuestras citas tuvieran duración
+                'title' => $cita->cliente->nombre . ' - ' . $cita->artista->nombre,
+                'start' => $cita->fecha_hora,
             ];
         });
 
-        // 3. Devolvemos la colección de eventos en formato JSON
         return response()->json($eventos);
     }
 }

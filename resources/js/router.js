@@ -1,5 +1,6 @@
 import Vue from 'vue';
 import VueRouter from 'vue-router';
+import Agenda from './pages/Agenda.vue'; // <-- Importa la nueva página
 
 Vue.use(VueRouter);
 
@@ -17,6 +18,12 @@ const routes = [
         path: '/login', // <-- 2. Añadimos la nueva ruta para el login
         name: 'login',
         component: Login
+    },
+    {
+        path: '/agenda', // <-- AÑADE ESTA NUEVA RUTA
+        name: 'agenda',
+        component: Agenda,
+        meta: { requiresAuth: true }
     },
     {
         path: '/dashboard',

@@ -70,4 +70,9 @@ class ArtistaController extends Controller
         $artista->delete();
         return response()->json(null, 204);
     }
+
+    public function list()
+    {
+        return Artista::orderBy('nombre')->get(['id', 'nombre', 'apellidos']);
+    }
 }

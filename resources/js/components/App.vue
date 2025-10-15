@@ -10,6 +10,8 @@
                 <nav class="space-x-6">
                     <router-link to="/" class="nav-link">Inicio</router-link>
                     
+                    <router-link v-if="isLoggedIn" to="/agenda" class="nav-link">Agenda</router-link>
+                    
                     <router-link v-if="isLoggedIn" to="/dashboard" class="nav-link">Dashboard</router-link>
 
                     <a v-if="isLoggedIn" @click="logout" href="#" class="nav-link cursor-pointer">Cerrar Sesión</a>

@@ -37,4 +37,11 @@ class Cita extends Model
     {
         return $this->belongsTo(Artista::class);
     }
+    /**
+     * Define la relación: una Cita tiene muchos Hitos.
+     */
+    public function hitos()
+    {
+        return $this->hasMany(Hito::class);
+    }
 }

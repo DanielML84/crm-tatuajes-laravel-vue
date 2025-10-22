@@ -1,15 +1,15 @@
 <template>
     <div class="bg-gray-800 p-6 rounded-lg shadow-lg">
+        
+        <!-- El formulario no cambia -->
         <form @submit.prevent="guardarCita" class="mb-8">
-             <h3 class="text-2xl font-bold text-gray-100 mb-6 border-b border-gray-700 pb-2">Agendar Nueva Cita</h3>
+            <h3 class="text-2xl font-bold text-gray-100 mb-6 border-b border-gray-700 pb-2">Agendar Nueva Cita</h3>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                     <label class="form-label">Cliente:</label>
                     <select v-model="formData.cliente_id" required class="form-input">
                         <option disabled value="">Selecciona un cliente</option>
-                        <option v-for="cliente in clientes" :key="cliente.id" :value="cliente.id">
-                            {{ cliente.nombre }} {{ cliente.apellidos }}
-                        </option>
+                        <option v-for="cliente in clientes" :key="cliente.id" :value="cliente.id">{{ cliente.nombre }} {{ cliente.apellidos }}</option>
                     </select>
                     <p v-if="errors.cliente_id" class="text-red-500 text-sm mt-1">{{ errors.cliente_id[0] }}</p>
                 </div>
@@ -17,9 +17,7 @@
                     <label class="form-label">Artista:</label>
                     <select v-model="formData.artista_id" required class="form-input">
                         <option disabled value="">Selecciona un artista</option>
-                        <option v-for="artista in artistas" :key="artista.id" :value="artista.id">
-                            {{ artista.nombre }} {{ artista.apellidos }}
-                        </option>
+                        <option v-for="artista in artistas" :key="artista.id" :value="artista.id">{{ artista.nombre }} {{ artista.apellidos }}</option>
                     </select>
                     <p v-if="errors.artista_id" class="text-red-500 text-sm mt-1">{{ errors.artista_id[0] }}</p>
                 </div>
@@ -38,16 +36,22 @@
             </div>
         </form>
 
+        <!-- Lista de citas, ahora interactiva -->
         <div>
             <h3 class="text-2xl font-bold text-gray-100 mb-4">Próximas Citas</h3>
             <ul class="divide-y divide-gray-700">
-                <li v-for="cita in citas" :key="cita.id" class="flex justify-between items-center py-3">
-                    <div class="text-gray-300">
-                        <p><strong>Cliente:</strong> {{ cita.cliente ? cita.cliente.nombre : 'N/A' }} | <strong>Artista:</strong> {{ cita.artista ? cita.artista.nombre : 'N/A' }}</p>
-                        <p class="text-sm text-gray-400"><strong>Fecha:</strong> {{ new Date(cita.fecha_hora).toLocaleString() }} | <strong>Estado:</strong> {{ cita.estado }}</p>
+                <!-- Cambiamos la <li> por un <div> para evitar anidar elementos de bloque -->
+                <div v-for="cita in citas" :key="cita.id" class="py-3">
+                    <div @click="toggleHitos(cita.id)" class="flex justify-between items-center cursor-pointer rounded-md p-2 hover:bg-gray-700 transition">
+                        <div class="text-gray-300">
+                            <p><strong>Cliente:</strong> {{ cita.cliente?.nombre }} | <strong>Artista:</strong> {{ cita.artista?.nombre }}</p>
+                            <p class="text-sm text-gray-400"><strong>Fecha:</strong> {{ new Date(cita.fecha_hora).toLocaleString() }}</p>
+                        </div>
+                        <button @click.stop="eliminarCita(cita.id)" class="btn-icon btn-delete">Eliminar</button>
                     </div>
-                    <button @click="eliminarCita(cita.id)" class="btn-icon btn-delete">Eliminar</button>
-                </li>
+                    <!-- El gestor de hitos, que se muestra condicionalmente -->
+                    <GestionHitos v-if="citaSeleccionada === cita.id" :citaId="cita.id" />
+                </div>
             </ul>
         </div>
     </div>
@@ -56,11 +60,16 @@
 <script>
 import axios from 'axios';
 import Swal from 'sweetalert2';
+import GestionHitos from './GestionHitos.vue'; // <-- Importa el nuevo componente
 
 export default {
     name: 'Citas',
+    components: {
+        GestionHitos // <-- Regístralo
+    },
     data() {
         return {
+            citaSeleccionada: null, // <-- Variable para saber qué cita está abierta
             citas: [],
             clientes: [],
             artistas: [],
@@ -82,19 +91,13 @@ export default {
             }
         },
         getCitas() {
-            axios.get('/api/v1/citas')
-                .then(response => { this.citas = response.data; })
-                .catch(this.handleApiError); // <-- Usamos el manejador de errores
+            axios.get('/api/v1/citas').then(response => { this.citas = response.data.data || response.data; }).catch(this.handleApiError);
         },
         getClientes() {
-            axios.get('/api/v1/clientes/list')
-                .then(response => { this.clientes = response.data; })
-                .catch(this.handleApiError); // <-- Usamos el manejador de errores
+            axios.get('/api/v1/clientes/list').then(response => { this.clientes = response.data; }).catch(this.handleApiError);
         },
         getArtistas() {
-            axios.get('/api/v1/artistas/list')
-                .then(response => { this.artistas = response.data; })
-                .catch(this.handleApiError); // <-- Usamos el manejador de errores
+            axios.get('/api/v1/artistas/list').then(response => { this.artistas = response.data; }).catch(this.handleApiError);
         },
         guardarCita() {
             this.errors = {};
@@ -126,15 +129,20 @@ export default {
                 color: '#e5e7eb'
             }).then((result) => {
                 if (result.isConfirmed) {
-                    axios.delete(`/api/v1/citas/${id}`)
-                        .then(() => { 
-                            this.getCitas(); 
-                            this.$toast.success('Cita eliminada con éxito.');
-                        })
-                        .catch(this.handleApiError); // <-- Usamos el manejador de errores
+                    axios.delete(`/api/v1/citas/${id}`).then(() => { 
+                        this.getCitas(); 
+                        this.$toast.success('Cita eliminada con éxito.');
+                    }).catch(this.handleApiError);
                 }
             });
-        }
+        },
+        toggleHitos(citaId) {
+            if (this.citaSeleccionada === citaId) {
+                this.citaSeleccionada = null;
+            } else {
+                this.citaSeleccionada = citaId;
+            }
+        },
     }
 }
 </script>
